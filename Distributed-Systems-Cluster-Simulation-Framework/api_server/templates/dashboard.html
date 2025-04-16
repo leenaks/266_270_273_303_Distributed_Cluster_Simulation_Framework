@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Cluster Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 2em;
+        }
+
+        h2 {
+            margin-top: 2em;
+        }
+
+        .healthy {
+            color: green;
+            font-weight: bold;
+        }
+
+        .unhealthy {
+            color: red;
+            font-weight: bold;
+        }
+
+        .unscheduled {
+            color: red;
+            font-weight: bold;
+        }
+
+        li {
+            margin-bottom: 0.5em;
+        }
+
+        button.small {
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Distributed Cluster Dashboard</h1>
+
+    <h2>Nodes</h2>
+    <ul id="nodeList"></ul>
+
+    <h2>Pods</h2>
+    <ul id="podList"></ul>
+
+    <h2>Add Node</h2>
+    <input type="number" id="cpuInput" placeholder="CPU cores" />
+    <button onclick="addNode()">Add Node</button>
+
+    <h2>Schedule Pod</h2>
+    <input type="text" id="podIdInput" placeholder="Pod ID" />
+    <input type="number" id="cpuReqInput" placeholder="CPU request" />
+    <button onclick="schedulePod()">Schedule</button>
+
+    <script>
+        async function loadNodes() {
+            const res = await fetch('/list_nodes');
+            const nodes = await res.json();
+            const list = document.getElementById('nodeList');
+            list.innerHTML = '';
+            nodes.forEach(n => {
+                const item = document.createElement('li');
+                const podCount = n.pods.length;
+                item.innerHTML = `
+          Node: ${n.id} | CPU: ${n.cpu_cores} | Available: ${n.available_cpu} | Pods: ${podCount} |
+          Status: <span class="${n.status.toLowerCase()}">${n.status}</span>
+          ${podCount === 0 ? `<button class="small" onclick="deleteNode('${n.id}')">Delete</button>` : ''}
+        `;
+                list.appendChild(item);
+            });
+        }
+
+        async function loadPods() {
+            const res = await fetch('/list_pods');
+            const pods = await res.json();
+            const list = document.getElementById('podList');
+            list.innerHTML = '';
+            pods.forEach(p => {
+                const item = document.createElement('li');
+                const isUnscheduled = !p.node_id || p.status === 'Unscheduled';
+                const nodeInfo = isUnscheduled
+                    ? `<span class="unscheduled">(Unscheduled)</span>`
+                    : `Node: ${p.node_id}`;
+
+                item.innerHTML = `
+          Pod: ${p.id} | CPU: ${p.cpu} | ${nodeInfo}
+          <button class="small" onclick="deletePod('${p.id}')">Delete</button>
+        `;
+                list.appendChild(item);
+            });
+        }
+
+        async function addNode() {
+            const addButton = document.querySelector('button');
+            if (addButton.disabled) return;  // Prevent multiple clicks
+            
+            const cpu = document.getElementById('cpuInput').value;
+            const cpuValue = Number(cpu);
+            if (!cpu || cpuValue <= 0 || !Number.isInteger(cpuValue)) {
+                alert('Please enter a positive whole number for CPU request.');
+                return;
+            }
+
+            addButton.disabled = true;  // Disable button while processing
+            try {
+                await fetch('/add_node', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cpu_cores: Number(cpu) })
+                });
+                document.getElementById('cpuInput').value = '';  // Clear input
+                loadNodes();
+            } catch (error) {
+                alert('Error adding node. Please try again.');
+            } finally {
+                addButton.disabled = false;  // Re-enable button
+            }
+        }
+
+        async function schedulePod() {
+            const podId = document.getElementById('podIdInput').value;
+            const cpuReq = document.getElementById('cpuReqInput').value;
+
+            // Add validation for positive whole numbers
+            const cpuValue = Number(cpuReq);
+            if (!podId || !cpuReq || cpuValue <= 0 || !Number.isInteger(cpuValue)) {
+                alert('Please enter a valid pod ID and a positive whole number for CPU request.');
+                return;
+            }
+
+            const res = await fetch('/schedule_pod', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pod_id: podId, cpu_request: cpuValue, strategy: 'best_fit' })
+            });
+
+            const result = await res.json();
+
+            if (res.status === 409) {
+                alert(`❗ Error: ${result.error}`);
+            } else if (res.status === 404) {
+                alert('⚠️ No suitable node found to schedule this pod.');
+            } else if (res.status === 200) {
+                alert(`✅ ${result.message}`);
+            }
+
+            loadNodes();
+            loadPods();
+        }
+
+        async function deletePod(podId) {
+            await fetch('/delete_pod', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pod_id: podId })
+            });
+            loadNodes();
+            loadPods();
+        }
+
+        async function deleteNode(nodeId) {
+            await fetch('/delete_node', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: nodeId })
+            });
+            loadNodes();
+            loadPods();
+        }
+
+        loadNodes();
+        loadPods();
+        setInterval(() => {
+            loadNodes();
+            loadPods();
+        }, 10000);
+    </script>
+</body>
+
+</html>

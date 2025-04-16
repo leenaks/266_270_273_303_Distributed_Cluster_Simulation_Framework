@@ -1,0 +1,14 @@
+{
+    "web-server1": {
+        "id": "web-server1",
+        "cpu": 2,
+        "node_id": "2f939a85-2ef9-4d4c-b381-f82d1ab23f9f",
+        "status": "Running"
+    },
+    "database1": {
+        "id": "database1",
+        "cpu": 2,
+        "node_id": "2f939a85-2ef9-4d4c-b381-f82d1ab23f9f",
+        "status": "Running"
+    }
+}

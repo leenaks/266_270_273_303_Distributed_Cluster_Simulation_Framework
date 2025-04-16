@@ -1,0 +1,30 @@
+{
+    "50cd8e1d-37c1-4fcb-8918-7dabebea76bf": {
+        "id": "50cd8e1d-37c1-4fcb-8918-7dabebea76bf",
+        "cpu_cores": 4,
+        "status": "Healthy",
+        "pods": [],
+        "last_heartbeat": "2025-04-15T05:13:22.337708"
+    },
+    "7f50a69e-89bc-4aa8-8d44-79e046712e32": {
+        "id": "7f50a69e-89bc-4aa8-8d44-79e046712e32",
+        "cpu_cores": 2,
+        "status": "Healthy",
+        "pods": [],
+        "last_heartbeat": "2025-04-15T05:13:23.967485"
+    },
+    "46f00a76-6ea5-403d-88d0-38175bea1779": {
+        "id": "46f00a76-6ea5-403d-88d0-38175bea1779",
+        "cpu_cores": 3,
+        "status": "Healthy",
+        "pods": [],
+        "last_heartbeat": "2025-04-15T05:13:22.979419"
+    },
+    "0e3e1c9a-86c6-4691-8cfd-4f06718a0e0f": {
+        "id": "0e3e1c9a-86c6-4691-8cfd-4f06718a0e0f",
+        "cpu_cores": 5,
+        "status": "Healthy",
+        "pods": [],
+        "last_heartbeat": "2025-04-15T05:13:24.177455"
+    }
+}

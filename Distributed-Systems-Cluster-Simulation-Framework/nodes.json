@@ -1,0 +1,9 @@
+{
+    "2f939a85-2ef9-4d4c-b381-f82d1ab23f9f": {
+        "id": "2f939a85-2ef9-4d4c-b381-f82d1ab23f9f",
+        "cpu_cores": 4,
+        "status": "Unhealthy",
+        "pods": [],
+        "last_heartbeat": "2025-04-15T09:25:15.286438"
+    }
+}
